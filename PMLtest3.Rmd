@@ -1,0 +1,60 @@
+---
+title: "PML1"
+author: "Jojo"
+date: "23 September 2015"
+output: html_document
+---
+
+```{r}
+library(randomForest)
+setwd("C:\\Users\\Minerva\\Dropbox\\Desk2015\\Rwork\\MachineLearn")
+
+#Read in training data
+trainUrl="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+training = "pml-training.csv"
+trainingF <- read.csv(training, na.strings=c("NA",""), header=TRUE)
+colnames_train <- colnames(trainingF)
+
+
+#Test data
+
+testUrl = "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+testing="pml-testing.csv"
+testingF <- read.csv(testing, na.strings=c("NA",""), header=TRUE)
+colnames_test <- colnames(testingF)
+
+trainingF <- trainingF[, colSums(is.na(trainingF)) == 0] 
+testingF <- testingF[, colSums(is.na(testingF)) == 0] 
+
+classe <- trainingF$classe
+trainRemove <- grepl("^X|timestamp|window", names(trainingF))
+trainingF <- trainingF[, !trainRemove]
+trainC<- trainingF[, sapply(trainingF, is.numeric)]
+trainC$classe <- classe
+
+testRemove <- grepl("^X|timestamp|window", names(testingF))
+testingF <- testingF[, !testRemove]
+testC <- testingF[, sapply(testingF, is.numeric)]
+
+set.seed(22519) # For reproducibile purpose
+library(caret)
+inTrain <- createDataPartition(trainC$classe, p=0.70, list=F)
+trainData <- trainC[inTrain, ]
+testData <- trainC[-inTrain, ]
+
+#controlRf <- trainControl(method="cv", 5)
+
+
+modelRf <- randomForest(classe ~ ., data=trainData)
+modelRf
+
+predictRf <- predict(modelRf, testData)
+#confusionMatrix(testData$classe, predictRf)
+
+#accuracy <- postResample(predictRf, testData$classe)
+
+result <- predict(modelRf, testC[, -length(names(testC))])
+
+
+```
+
